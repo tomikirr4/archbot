@@ -1,0 +1,37 @@
+model {
+  extend bot_system {
+    bot_app = container 'Bot Application' {
+      description 'Python приложение (Telebot), реализующее логику бота'
+      technology 'Python, pyTelegramBotAPI'
+    }
+
+    state_storage = database 'In-Memory Storage' {
+      description 'Хранение состояний пользователей и кэш генераций'
+      technology 'Python Dicts'
+    }
+
+    file_system = container 'File System' {
+      description 'Временное хранение сгенерированных DOCX файлов'
+      technology 'Local Disk'
+    }
+  }
+
+  // Связи контейнеров
+  telegram -> bot_app 'HTTPS / Long Polling'
+  bot_app -> telegram 'HTTPS (Send Message/Document)'
+  
+  bot_app -> gemini 'HTTPS (REST API)'
+  gemini -> bot_app 'JSON Response'
+
+  bot_app -> state_storage 'Reads/Writes User State'
+  bot_app -> file_system 'Writes generated .docx'
+  bot_app -> file_system 'Reads .docx for upload'
+}
+
+views {
+  view containers of bot_system {
+    title 'Диаграмма контейнеров Bot Project'
+    include *
+    autoLayout TopBottom
+  }
+}

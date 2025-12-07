@@ -1,0 +1,31 @@
+specification {
+  element user {
+    style {
+      shape person
+    }
+  }
+  element system {
+    style {
+      shape rectangle
+      color primary
+    }
+  }
+  element external_system {
+    style {
+      shape rectangle
+      color muted
+    }
+  }
+  element container {
+    style {
+      shape rectangle
+      color secondary
+    }
+  }
+  element database {
+    style {
+      shape cylinder
+      color secondary
+    }
+  }
+}

@@ -1,0 +1,33 @@
+model {
+  teacher = user 'Учитель' {
+    description 'Пользователь, создающий или обрабатывающий контрольные работы'
+  }
+
+  bot_system = system 'Бот для генерации контрольных работ' {
+    description 'Система генерации и обработки контрольных работ'
+  }
+
+  telegram = external_system 'Telegram' {
+    description 'Мессенджер для взаимодействия с пользователем'
+  }
+
+  gemini = external_system 'Google Gemini API' {
+    description 'LLM сервис для генерации и анализа текста'
+  }
+
+  teacher -> telegram 'Отправляет команды (/start, /generate), текст или файлы'
+  telegram -> bot_system 'Передает сообщения и события (Webhook/Polling)'
+  bot_system -> telegram 'Отправляет ответы, меню и файлы (.docx)'
+  telegram -> teacher 'Отображает ответы и файлы'
+
+  bot_system -> gemini 'Отправляет промпты для генерации или обработки текста'
+  gemini -> bot_system 'Возвращает сгенерированный текст'
+}
+
+views {
+  view context {
+    title 'Контекстная диаграмма бота для генерации контрольных работ'
+    include *
+    autoLayout LeftRight
+  }
+}
