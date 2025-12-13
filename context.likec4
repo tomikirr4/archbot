@@ -1,33 +1,26 @@
 model {
   teacher = user 'Учитель' {
-    description 'Пользователь, создающий или обрабатывающий контрольные работы'
+    description 'Пользователь, создающий контрольные работы'
   }
 
-  bot_system = system 'Бот для генерации контрольных работ ПГ' {
+  gen_system = system 'Генератор контрольных работ ПГ' {
     description 'Система генерации и обработки контрольных работ для Политехнической гимназии'
   }
 
-  telegram = external_system 'Telegram' {
-    description 'Мессенджер для взаимодействия с пользователем'
+  llm = external_system 'LLM сервис' {
+    description 'LLM сервис для генерации и анализа текста (Google Gemini)'
   }
 
-  gemini = external_system 'Google Gemini API' {
-    description 'LLM сервис для генерации и анализа текста'
-  }
-
-  teacher -> telegram 'Отправляет команды (/start, /generate), текст или файлы'
-  telegram -> bot_system 'Передает сообщения и события (Webhook/Polling)'
-  bot_system -> telegram 'Отправляет ответы, меню и файлы (.docx)'
-  telegram -> teacher 'Отображает ответы и файлы'
-
-  bot_system -> gemini 'Отправляет промпты для генерации или обработки текста'
-  gemini -> bot_system 'Возвращает сгенерированный текст'
+  teacher -> gen_system 'Задаёт параметры генерации контрольной работы'
+  gen_system -> teacher 'Возвращает сгенерированную контрольную работу'
+  gen_system -> llm 'Отправляет запрос на генерацию текста'
+  llm -> gen_system 'Возвращает сгенерированный текст'
 }
 
 views {
   view context {
     title 'Контекстная диаграмма бота для генерации контрольных работ'
-    include *
-    autoLayout LeftRight
+    include teacher, gen_system, llm
+    autoLayout TopBottom
   }
 }

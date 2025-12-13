@@ -1,11 +1,23 @@
 model {
-  extend bot_system {
-    bot_app = container 'Bot Application' {
-      description 'Python приложение (Telebot), реализующее логику бота'
-      technology 'Python, pyTelegramBotAPI'
+   messenger = external_system 'Telegram' {
+      description 'Мессенджер для взаимодействия с пользователем'
+      technology 'Telegram Bot API'
+    } 
+  extend gen_system { 
+    web_interface = container 'Web Interface' {
+      description 'Веб интерфейс взаимодействия с пользователем (в разработке)'
+      technology  'Flask, HTML/CSS/JS'
+      style {
+        color: red
+        shape: browser
+      }
+    }
+    gen_app = container 'Generator Application' {
+      description 'Python приложение, реализующее логику'
+      technology  'Python, pyTelegramBotAPI'
     }
 
-    state_storage = database 'In-Memory Storage' {
+    state_storage = database 'In-Memory DB' {
       description 'Хранение состояний пользователей и кэш генераций'
       technology 'Python Dicts'
     }
@@ -14,24 +26,37 @@ model {
       description 'Временное хранение сгенерированных DOCX файлов'
       technology 'Local Disk'
     }
+    
   }
 
   // Связи контейнеров
-  telegram -> bot_app 'HTTPS / Long Polling'
-  bot_app -> telegram 'HTTPS (Send Message/Document)'
-  
-  bot_app -> gemini 'HTTPS (REST API)'
-  gemini -> bot_app 'JSON Response'
+  teacher -> messenger 'Параметры генерации контрольной работы'
+  teacher -> web_interface 'Параметры генерации контрольной работы'
 
-  bot_app -> state_storage 'Reads/Writes User State'
-  bot_app -> file_system 'Writes generated .docx'
-  bot_app -> file_system 'Reads .docx for upload'
+  messenger -> gen_app 'HTTPS / Long Polling'
+  gen_app -> messenger 'HTTPS (Send Message/Document)'
+
+  web_interface -> gen_app 'HTTPS (REST API)'
+
+
+  gen_app -> llm 'HTTPS (REST API)'{
+    description 'Промпт с параметрами генерации текста'
+  }
+  llm -> gen_app 'JSON Response' {
+    description 'Сгенерированный текст контрольной работы'
+  }
+
+  gen_app -> state_storage 'Запись и чтение состояний пользователей'
+  gen_app -> file_system 'Сохранение docx файлов'
 }
 
 views {
-  view containers of bot_system {
-    title 'Диаграмма контейнеров Bot Project'
+  view containers of gen_system {
+    title 'Диаграмма контейнеров'
+    include teacher, messenger
     include *
-    autoLayout TopBottom
+    include llm
+
+
   }
 }
