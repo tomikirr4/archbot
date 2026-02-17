@@ -5,16 +5,26 @@ model {
     } 
   extend gen_system { 
     web_interface = container 'Web Interface' {
-      description 'Веб интерфейс взаимодействия с пользователем (в разработке)'
+      description 'Веб интерфейс взаимодействия с пользователем'
       technology  'Flask, HTML/CSS/JS'
       style {
-        color: red
         shape: browser
       }
     }
-    gen_app = container 'Generator Application' {
-      description 'Python приложение, реализующее логику'
-      technology  'Python, pyTelegramBotAPI'
+    gen_app = container {
+      title 'Основной модуль'
+      description 'Приложение, реализующее логику'
+
+      gen_app_web = container 'Generator Application' {
+        description 'Python приложение, реализующее логику'
+      }
+      gen_app_bot = container 'Generator Application Bot' {
+        description 'Python приложение, реализующее логику бота (развитие прекращено)'
+        technology  'Python, pyTelegramBotAPI'
+        style {
+          color: red
+        }
+      }
     }
 
     state_storage = database 'In-Memory DB' {
@@ -33,10 +43,10 @@ model {
   teacher -> messenger 'Параметры генерации контрольной работы'
   teacher -> web_interface 'Параметры генерации контрольной работы'
 
-  messenger -> gen_app 'HTTPS / Long Polling'
-  gen_app -> messenger 'HTTPS (Send Message/Document)'
+  messenger -> gen_app_bot 'HTTPS / Long Polling'
+  gen_app_bot -> messenger 'HTTPS (Send Message/Document)'
 
-  web_interface -> gen_app 'HTTPS (REST API)'
+  web_interface -> gen_app_web 'HTTPS (REST API)'
 
 
   gen_app -> llm 'HTTPS (REST API)'{
@@ -56,7 +66,7 @@ views {
     include teacher, messenger
     include *
     include llm
-
+    include gen_app.*
 
   }
 }
